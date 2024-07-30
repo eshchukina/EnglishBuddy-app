@@ -1,0 +1,17 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/days2.ttf",
+      "sha1": "3b4215d5e445c2bd74b6c191feae8edea4be962f"
+    },
+    {
+      "path": "assets/fonts/nexa-script-heavy.ttf",
+      "sha1": "afedf10cc1c58ad02bd30037a4b6b22cd5d2ae15"
+    },
+    {
+      "path": "assets/fonts/vidaloca.ttf",
+      "sha1": "6594a0bcbb872f642b1735c747427f74bdd41b60"
+    }
+  ]
+}
