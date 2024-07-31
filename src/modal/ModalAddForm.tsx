@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {Modal, View, Text, TextInput, StyleSheet} from 'react-native';
-import Icon from 'react-native-vector-icons/AntDesign';
 import CustomButton from '../buttons/CustomButton';
 import * as Validation from '../utils/Validation';
 import {useTranslation} from 'react-i18next';
@@ -41,10 +40,7 @@ const ModalAddForm: React.FC<ModalAddFormProps> = ({
       onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.modalContent]}>
-          <Text style={styles.titleText}>
-          {t('add')}
-
-          </Text>
+          <Text style={styles.titleText}>{t('add')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input]}
@@ -74,11 +70,7 @@ const ModalAddForm: React.FC<ModalAddFormProps> = ({
 
             <CustomButton
               onPress={handleCloseModal}
-              title={
-                <Text>
-                 {t('close')}
-                </Text>
-              }
+              title={<Text>{t('close')}</Text>}
               buttonColor="#d86072"
               textColor="#262628"
               pressedColor="#c6c2f2"

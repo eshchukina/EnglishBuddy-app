@@ -8,7 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 import CustomButton from '../buttons/CustomButton';
-import SwipeCards from './SwipeCards';
+import SwipeCards from '../components/SwipeCards';
 import Arrow from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 
@@ -23,9 +23,7 @@ interface FlashcardDeckProps {
 
 const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
   navigation,
-  updateSwipedRightCount,
-  setSelectedComponent,
-  setIsPersonalCabinetOpen,
+
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const {t} = useTranslation();
@@ -50,7 +48,7 @@ const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <CustomButton
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => navigation.navigate('Home')}
           title={<Arrow name="chevron-back" size={40} />}
           buttonColor="#fff6ee"
           textColor="#c6c2f2"
@@ -62,10 +60,7 @@ const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
       </Text>
 
       <SwipeCards
-        updateSwipedRightCount={updateSwipedRightCount}
-        setSelectedComponent={setSelectedComponent}
-        setIsPersonalCabinetOpen={setIsPersonalCabinetOpen}
-        style={{flex: 1} as StyleProp<ViewStyle>}
+    
       />
     </View>
   );

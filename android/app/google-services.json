@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "292449757574",
+    "project_id": "englishbuddy-ffc4c",
+    "storage_bucket": "englishbuddy-ffc4c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292449757574:android:5ba8c1393a0b391bb52407",
+        "android_client_info": {
+          "package_name": "com.buddyenglish"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPFnlL1COdGkiGcvmJvDMQtwrNDBR7jUk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

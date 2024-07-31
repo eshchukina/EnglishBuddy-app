@@ -14,14 +14,16 @@ import shareApp from '../utils/shareApp';
 import {useTranslation} from 'react-i18next';
 import i18n from '../translation/i18n';
 import sendEmail from '../utils/sendEmail';
+import messaging from '@react-native-firebase/messaging';
 
 interface DrawerMenuProps {
-  setIsEnabled: (enabled: boolean) => void;
-  isEnabled: boolean;
+
 }
 
-const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
+const DrawerMenu: React.FC<DrawerMenuProps> = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [isEnabled, setIsEnabled] = useState<boolean>(false);
+  const [isEnabledNot, setIsEnabledNot] = useState(true);
    const {t} = useTranslation();
 
   useEffect(() => {
@@ -58,6 +60,33 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
     setModalVisible(false);
   };
 
+
+  useEffect(() => {
+    const loadNotificationState = async () => {
+      try {
+        const isEnabledSwitch = await AsyncStorage.getItem('isEnabled1');
+        if (
+          isEnabledNot === true &&
+          (isEnabledSwitch === 'true' || isEnabledSwitch === null)
+        ) {
+          await subscribeToTopic('all');
+          setIsEnabledNot(true);
+        } else {
+          setIsEnabledNot(false);
+          await unsubscribeFromTopic('all');
+        }
+
+
+      } catch (error) {
+        console.error('Error loading notification state:', error);
+      }
+    };
+
+    loadNotificationState();
+  }, []);
+
+
+
   const toggleSwitch = async () => {
     const newState = !isEnabled;
     const newLang = newState ? 'en' : 'ru';
@@ -78,6 +107,49 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
       'https://www.freeprivacypolicy.com/live/fb11492e-6e29-49d1-90dd-af0fc50e0100';
     Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
   };
+
+
+
+  const toggleSubscription = async (newValue: boolean) => {
+    setIsEnabledNot(newValue);
+
+    try {
+      await AsyncStorage.setItem('notificationEnabled', newValue.toString());
+      console.log('notificationEnabled value set to:', newValue.toString());
+    } catch (error) {
+      console.error('Error saving notification state:', error);
+    }
+
+    if (newValue) {
+      await subscribeToTopic('all');
+      AsyncStorage.setItem('isEnabled1', 'true');
+      AsyncStorage.setItem('notificationEnabled', 'true');
+      await AsyncStorage.setItem('permissionRequested', 'true');
+    } else {
+      await unsubscribeFromTopic('all');
+      AsyncStorage.setItem('isEnabled1', 'false');
+      AsyncStorage.setItem('permissionRequested', 'false');
+    }
+  };
+
+  const subscribeToTopic = async (topic: string) => {
+    try {
+      await messaging().subscribeToTopic(topic);
+      console.log(`Subscribed to topic: ${topic}`);
+    } catch (error) {
+      console.error('Topic subscription error:', error);
+    }
+  };
+
+  const unsubscribeFromTopic = async (topic: string) => {
+    try {
+      await messaging().unsubscribeFromTopic(topic);
+      console.log(`Unsubscribed from topic: ${topic}`);
+    } catch (error) {
+      console.error('Topic unsubscription error:', error);
+    }
+  };
+
 
   return (
     <>
@@ -104,7 +176,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
             iconComponent={
               <ShareIcon
                 name="sharealt"
-                size={40}
+                size={30}
                 color="#d86072"
                 style={styles.icon}
               />
@@ -117,7 +189,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
         <View style={styles.button}>
           <IconButton
             iconComponent={
-              <Mail name="mail" size={40} color="#d6dc82" style={styles.icon} />
+              <Mail name="mail" size={30} color="#d6dc82" style={styles.icon} />
             }
             text={t('connect')}
             onPress={sendEmail}
@@ -129,7 +201,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
             iconComponent={
               <Star
                 name="comment"
-                size={40}
+                size={30}
                 color="#d86072"
                 style={styles.icon}
               />
@@ -144,7 +216,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
             iconComponent={
               <Document
                 name="document-attach-outline"
-                size={40}
+                size={30}
                 color="#d6dc82"
                 style={styles.icon}
               />
@@ -159,7 +231,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
             iconComponent={
               <Description
                 name="script-text-outline"
-                size={40}
+                size={30}
                 color="#d86072"
                 style={styles.icon}
               />
@@ -168,6 +240,22 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
             onPress={openModal}
           />
         </View>
+        <View style={styles.switchNotification}>
+            
+            <ToggleSwitch
+              isOn={isEnabledNot}
+              onColor="#fff6ee"
+              offColor="#fff6ee"
+              thumbOnStyle={styles.thumbOnStyle}
+              thumbOffStyle={styles.thumbOffStyle}
+              size="medium"
+              onToggle={toggleSubscription}
+            />
+<Text style={styles.textTitleNot}>           
+{isEnabledNot ? t('on') : t('off')}
+</Text>
+      
+          </View>
       </View>
 
       <ModalInstructions visible={modalVisible} onClose={closeModal} />
@@ -178,8 +266,8 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({setIsEnabled, isEnabled}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 5,
-    alignItems: 'center',
+    paddingLeft: 10,
+    alignItems:"flex-start",
     justifyContent: 'space-around',
   },
   header: {
@@ -223,6 +311,18 @@ const styles = StyleSheet.create({
   button: {
     marginVertical: 10,
   },
+  textTitleNot:{
+    fontFamily:"days2",
+    color:"#262628",
+    fontSize:18,
+  },
+  switchNotification:{
+    flexDirection:"row",
+    width:"80%",
+    justifyContent: 'space-between',
+
+    alignItems: 'center',
+  }
 });
 
 export default DrawerMenu;

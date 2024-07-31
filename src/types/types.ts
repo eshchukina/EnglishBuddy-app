@@ -1,6 +1,6 @@
 export type RootStackParamList = {
-  Download: undefined;
-  Dashboard: undefined;
+  Welcome: undefined;
+  Home: undefined;
   FlashcardDeck: undefined;
   };
   

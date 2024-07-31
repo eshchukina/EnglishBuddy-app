@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, StyleSheet, ModalProps } from 'react-native';
+import {View, Text, Modal, StyleSheet, ModalProps} from 'react-native';
 import CustomButton from '../buttons/CustomButton';
 import {useTranslation} from 'react-i18next';
 
@@ -9,7 +9,11 @@ interface ModalRestartProps extends ModalProps {
   onRestart: () => void;
 }
 
-const ModalRestart: React.FC<ModalRestartProps> = ({ isVisible, onClose, onRestart }) => {
+const ModalRestart: React.FC<ModalRestartProps> = ({
+  isVisible,
+  onClose,
+  onRestart,
+}) => {
   const {t} = useTranslation();
 
   return (
@@ -17,13 +21,10 @@ const ModalRestart: React.FC<ModalRestartProps> = ({ isVisible, onClose, onResta
       animationType="fade"
       transparent={true}
       visible={isVisible}
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalText}>
-            {t('restart')}
-          </Text>
+          <Text style={styles.modalText}>{t('restart')}</Text>
           <View style={styles.buttonContainer}>
             <CustomButton
               onPress={() => {
@@ -31,7 +32,6 @@ const ModalRestart: React.FC<ModalRestartProps> = ({ isVisible, onClose, onResta
                 onRestart();
               }}
               title={t('yes')}
-
               buttonColor="#d86072"
               textColor="#262628"
               pressedColor="#c6c2f2"

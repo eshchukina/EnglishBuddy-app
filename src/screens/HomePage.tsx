@@ -8,8 +8,8 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
-import Overlay from '../utils/Overlay';
-import Passing from './Passing';
+import Overlay from '../components/Overlay';
+import Passing from '../components/Passing';
 import IconButton from '../buttons/IconButton';
 import Cards from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,7 +18,7 @@ import CustomButton from '../buttons/CustomButton';
 import DrawerMenu from '../sidemenu/DrawerMenu';
 import {useTranslation} from 'react-i18next';
 
-interface DashboardProps {
+interface HomePageProps {
   navigation: {
     navigate: (screen: string) => void;
   };
@@ -27,10 +27,9 @@ interface DashboardProps {
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
-const Dashboard: React.FC<DashboardProps> = ({navigation}) => {
+const HomePage: React.FC<HomePageProps> = ({navigation}) => {
   const [isPressed, setIsPressed] = useState<boolean>(false);
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
-  const [isEnabled, setIsEnabled] = useState<boolean>(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const {t} = useTranslation();
 
@@ -163,7 +162,7 @@ const Dashboard: React.FC<DashboardProps> = ({navigation}) => {
             {transform: [{translateX: drawerTranslateX}]},
             {opacity: fadeAnim},
           ]}>
-          <DrawerMenu isEnabled={isEnabled} setIsEnabled={setIsEnabled} />
+          <DrawerMenu />
         </Animated.View>
         {isDrawerOpen && <Overlay onPress={toggleDrawer} />}
       </View>
@@ -240,7 +239,6 @@ const styles = StyleSheet.create({
   textModal: {
     fontSize: 18,
     color: '#783d19',
-    fontFamily: 'vidaloka',
     margin: 5,
     textAlign: 'justify',
   },
@@ -285,4 +283,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Dashboard;
+export default HomePage;

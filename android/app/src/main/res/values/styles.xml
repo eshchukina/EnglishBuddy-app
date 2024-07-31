@@ -3,6 +3,9 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:statusBarColor">#c6c2f2</item>
+        <!-- <item name="android:windowBackground">@color/app_background</item> -->
+        <item name="android:scrollbarThumbVertical">@color/scroll</item> 
+       <item name="android:windowBackground">@drawable/launch_screen</item>
 
         <item name="android:windowDisablePreview">true</item>
         <item name="android:windowIsTranslucent">true</item>

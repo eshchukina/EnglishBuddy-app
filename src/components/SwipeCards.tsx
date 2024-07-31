@@ -1,9 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {View, StyleSheet, Image} from 'react-native';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import SQLite from 'react-native-sqlite-2';
 import SwipeCards from 'react-native-swipe-cards';
-import NoMoreCards from './NoMoreCards';
 import ModalAddForm from '../modal/ModalAddForm';
 import Card from './Card';
 import RadialProgress from './RadialProgress';
@@ -12,53 +11,79 @@ import Fireworks from './Fireworks';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Reload from 'react-native-vector-icons/AntDesign';
 import ModalRestart from '../modal/ModalRestart';
-import {Dimensions} from 'react-native';
 import CustomButton from '../buttons/CustomButton';
+import ModalFirst from '../modal/ModalFirst';
 const db = SQLite.openDatabase('mydatabase.db');
-import {heightPercentageToDP} from 'react-native-responsive-screen';
-const {width: screenWidth} = Dimensions.get('window');
-const isSmallScreen = screenWidth < 375;
 
-const SwipeCard = ({updateSwipedRightCount}) => {
-  const [cards, setCards] = useState([]);
+interface ApiData {
+  word: string;
+  translation: string;
+}
+
+interface CardData {
+  id: number;
+  word: string;
+  translation: string;
+  tag: string;
+  count: number;
+}
+
+const SwipeCard: React.FC = () => {
+  const [dataSource, setDataSource] = useState<string>('');
+  const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dataSource, setDataSource] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [wordCount, setWordCount] = useState(0);
   const [swipedRightCount, setSwipedRightCount] = useState(0);
   const [swipedLeftCount, setSwipedLeftCount] = useState(0);
-  const [showNoMoreCards, setShowNoMoreCards] = useState(false);
-  const [lastVisitedCardId, setLastVisitedCardId] = useState(null);
-  const [countWithTagRight3, setCountWithTagRight3] = useState(0);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [showView, setShowView] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [totalSwipesRight, setTotalSwipesRight] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
-    const visibilityDuration = 5000;
-
-    const timeoutId = setTimeout(() => {
-      setIsVisible(false);
-    }, visibilityDuration);
-
-    return () => clearTimeout(timeoutId);
+    const checkIfModalShown = async () => {
+      const hasSeenModal = await AsyncStorage.getItem('hasSeenModal');
+      if (!hasSeenModal) {
+        setIsModalVisible(true);
+      }
+    };
+    checkIfModalShown();
   }, []);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setShowView(true);
-    }, 2000);
+  const handleCloseModal = async () => {
+    restartApp();
+    fetchAndSetData();
+    await AsyncStorage.setItem('hasSeenModal', 'true');
+    setIsModalVisible(false);
+  };
 
-    return () => clearTimeout(timeoutId);
+  useEffect(() => {
+    fetchAndSetData();
   }, []);
 
+  const calculateProgress = () => {
+    setProgress((totalSwipesRight / 3000) * 100);
+    AsyncStorage.setItem('percentage', progress.toString());
+  };
+
   useEffect(() => {
-    const startButtonValue = AsyncStorage.getItem('startButton');
+    const loadTotalSwipesRight = async () => {
+      try {
+        const savedTotalSwipesRight = await AsyncStorage.getItem(
+          'totalSwipesRight',
+        );
+        if (savedTotalSwipesRight !== null) {
+          setTotalSwipesRight(parseInt(savedTotalSwipesRight, 10));
+        }
+      } catch (error) {
+        console.error(
+          'Error loading totalSwipesRight from AsyncStorage:',
+          error,
+        );
+      }
+    };
 
-    if (startButtonValue && startButtonValue === '0') {
-    } else if (startButtonValue && startButtonValue === '1') {
-    }
-
+    loadTotalSwipesRight();
     fetchAndSetData();
   }, []);
 
@@ -76,8 +101,8 @@ const SwipeCard = ({updateSwipedRightCount}) => {
     tx.executeSql(
       'CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, translation TEXT, tag TEXT, count INTEGER);',
       [],
-      (tx, result) => {
-        console.log('Table created successfully.');
+      () => {
+        console.log('Table created successfully');
       },
       error => {
         console.error('Error creating table:', error);
@@ -85,31 +110,6 @@ const SwipeCard = ({updateSwipedRightCount}) => {
     );
   });
 
-  // db.transaction((tx) => {
-  //   tx.executeSql(
-  //     'ALTER TABLE words ADD COLUMN tag TEXT;',
-  //     [],
-  //     (tx, result) => {
-  //       console.log('Column "tag" added successfully.');
-  //     },
-  //     (error) => {
-  //       console.log('Error adding column "tag":', error);
-  //     }
-  //   );
-
-  //   tx.executeSql(
-  //     'ALTER TABLE words ADD COLUMN count INTEGER;',
-  //     [],
-  //     (tx, result) => {
-  //       console.log('Column "count" added successfully.');
-  //     },
-  //     (error) => {
-  //       console.log('Error adding column "count":', error);
-  //     }
-  //   );
-  // });
-
-  // useEffect(() => {
   const fetchAndSetData = async () => {
     try {
       const netInfoState = await NetInfo.fetch();
@@ -133,14 +133,12 @@ const SwipeCard = ({updateSwipedRightCount}) => {
         if (count === 0 && netInfoState.isConnected) {
           const apiData = await fetchDataFromAPI();
 
-          apiData.forEach(({word, translation}) => {
+          apiData.forEach((word: string, translation: string) => {
             db.transaction(tx => {
               tx.executeSql(
                 'INSERT INTO words (word, translation, tag, count) VALUES (?, ?, ?, ?);',
                 [word, translation, '', 0],
-                (tx, result) => {
-                  // console.log("Data inserted successfully:", word, translation);
-                },
+
                 error => {
                   console.log('Error inserting data: ', error);
                 },
@@ -151,16 +149,7 @@ const SwipeCard = ({updateSwipedRightCount}) => {
           setCards(apiData);
         } else {
           setDataSource('SQLite');
-          db.transaction(tx => {
-            tx.executeSql(
-              "SELECT COUNT(*) as count FROM words WHERE tag = 'right';",
-              [],
-       
-              error => {
-                console.log("Error with 'right' from SQLite:", error);
-              },
-            );
-          });
+
           db.transaction(tx => {
             tx.executeSql(
               'SELECT * FROM words WHERE count < 3 ORDER BY RANDOM();',
@@ -181,7 +170,6 @@ const SwipeCard = ({updateSwipedRightCount}) => {
                 const shuffledData = data.sort(() => Math.random() - 0.5);
 
                 setCards(shuffledData);
-                // console.log(shuffledData);
 
                 setLoading(false);
               },
@@ -192,10 +180,7 @@ const SwipeCard = ({updateSwipedRightCount}) => {
             tx.executeSql(
               'SELECT COUNT(*) as count FROM words;',
               [],
-              (tx, result) => {
-                const count = result.rows.item(0).count;
-                setWordCount(count);
-              },
+
               error => {
                 console.log(
                   'Error while fetching word count from SQLite:',
@@ -209,47 +194,15 @@ const SwipeCard = ({updateSwipedRightCount}) => {
       let count;
       if (count === 0 && netInfoState.isConnected) {
         setCards(apiData);
-
-        if (apiData.length > 0) {
-          await AsyncStorage.setItem(
-            'lastCardId',
-            apiData[apiData.length - 1].id.toString(),
-          );
-        }
       } else {
         setDataSource('SQLite');
       }
 
-      setTimeout(() => {
-        setShowNoMoreCards(true);
-      }, 30000);
-
       setLoading(false);
-      const storedLastCardId = await AsyncStorage.getItem('lastCardId');
-
-      if (storedLastCardId) {
-        setLastVisitedCardId(parseInt(storedLastCardId, 10));
-      }
     } catch (error) {
       console.error('Error:', error);
     }
   };
-
-  //   fetchAndSetData();
-  // }, []);
-
-  useEffect(() => {
-    db.transaction(tx => {
-      tx.executeSql(
-        "SELECT COUNT(*) as count FROM words WHERE tag = 'right';",
-        [],
-      
-        error => {
-          console.log(error);
-        },
-      );
-    });
-  });
 
   useEffect(() => {
     db.transaction(tx => {
@@ -267,11 +220,14 @@ const SwipeCard = ({updateSwipedRightCount}) => {
     });
   }, [swipedRightCount, swipedLeftCount]);
 
-  const handleYup = card => {
+  const handleYup = (card: number) => {
     setSwipedRightCount(prevCount => prevCount + 1);
-
-    AsyncStorage.setItem('lastCardId', card.id.toString());
-
+    setTotalSwipesRight(prevTotal => {
+      const newTotal = prevTotal + 1;
+      AsyncStorage.setItem('totalSwipesRight', newTotal.toString());
+      return newTotal;
+    });
+    calculateProgress();
     db.transaction(tx => {
       tx.executeSql(
         'SELECT count FROM words WHERE id = ?;',
@@ -281,25 +237,24 @@ const SwipeCard = ({updateSwipedRightCount}) => {
           tx.executeSql(
             "UPDATE words SET tag = 'right', count = ? WHERE id = ?;",
             [currentCount + 1, card.id],
-            (tx, result) => {
-              updateProgress();
-            },
+
             error => {
               console.log('Error updating tag and count:', error);
             },
           );
         },
-        error => {
-          console.log('Error fetching count:', error);
-        },
       );
     });
   };
 
-  const handleNope = card => {
+  const handleNope = (card: number) => {
     setSwipedLeftCount(prevCount => prevCount + 1);
-
-    AsyncStorage.setItem('lastCardId', card.id.toString());
+    setTotalSwipesRight(prevTotal => {
+      const newTotal = prevTotal - 1;
+      AsyncStorage.setItem('totalSwipesRight', newTotal.toString());
+      return newTotal;
+    });
+    calculateProgress();
     db.transaction(tx => {
       tx.executeSql(
         'SELECT count FROM words WHERE id = ?;',
@@ -309,83 +264,54 @@ const SwipeCard = ({updateSwipedRightCount}) => {
           tx.executeSql(
             "UPDATE words SET tag = 'left', count = ? WHERE id = ?;",
             [currentCount + 1, card.id],
-            (tx, result) => {
-              updateProgress();
-            },
+
             error => {
               console.log('Error updating tag and count:', error);
             },
           );
         },
-        error => {
-          console.log('Error fetching count:', error);
-        },
       );
     });
   };
 
-  const updateProgress = () => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT COUNT(*) as count FROM words WHERE count >= 3;',
-        [],
-        (tx, result) => {
-          const countWithTagRight3 = result.rows.item(0).count;
-          setCountWithTagRight3(countWithTagRight3);
-          updateSwipedRightCount(countWithTagRight3);
-        },
-        error => {
-          console.log('Error updating progress:', error);
-        },
-      );
-    });
-  };
-
-  useEffect(() => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT COUNT(*) as count FROM words WHERE count >= 3;',
-        [],
-        (tx, result) => {
-          const countWithTagRight3 = result.rows.item(0).count;
-          setCountWithTagRight3(countWithTagRight3);
-          // updateSwipedRightCount( countWithTagRight3);
-        },
-        error => {
-          console.log('Error updating progress:', error);
-        },
-      );
-    });
-  }, [swipedRightCount, swipedLeftCount]);
-
-  const handleAddWord = (word, translation) => {
+  const handleAddWord = (word: string, translation: string) => {
     db.transaction(tx => {
       tx.executeSql(
         'INSERT INTO words (word, translation, tag, count) VALUES (?, ?, ?, ?);',
         [word, translation, '', 0],
-        (tx, result) => {
-          // console.log("Data inserted successfully:", word, translation, tag, count);
-        },
+
         error => {
           console.log('Error inserting data: ', error);
         },
       );
     });
 
-    const newCard = {id: cards.length + 1, word, translation};
+    const newCard: CardData = {
+      id: cards.length + 1,
+      word,
+      translation,
+      tag: '',
+      count: 0,
+    };
+
     setCards([...cards, newCard]);
   };
 
   const restartApp = async () => {
+    setSwipedRightCount(0);
+    setSwipedLeftCount(0);
+    setTotalSwipesRight(0);
+    setProgress(0);
+    AsyncStorage.removeItem('percentage');
+    AsyncStorage.removeItem('totalSwipesRight');
     try {
       db.transaction(tx => {
-        tx.executeSql('DELETE FROM words;', [], (tx, result) => {
-          console.log('Table cleared successfully');
+        tx.executeSql('DELETE FROM words;', [], result => {
+          console.log('Table cleared successfully', result);
         });
       });
 
-      const apiData = await fetchDataFromAPI();
-
+      const apiData: ApiData[] = await fetchDataFromAPI();
       const shuffledData = apiData.sort(() => Math.random() - 0.5);
 
       shuffledData.forEach(({word, translation}) => {
@@ -393,9 +319,6 @@ const SwipeCard = ({updateSwipedRightCount}) => {
           tx.executeSql(
             'INSERT INTO words (word, translation, tag, count) VALUES (?, ?, ?, ?);',
             [word, translation, '', 0],
-            (tx, result) => {
-              // console.log("Data inserted successfully:", word, translation);
-            },
             error => {
               console.log('Error inserting data: ', error);
             },
@@ -403,21 +326,17 @@ const SwipeCard = ({updateSwipedRightCount}) => {
         });
       });
 
-      setCards(shuffledData);
-      setSwipedRightCount(0);
-      setSwipedLeftCount(0);
-      setLastVisitedCardId(null);
-      setShowNoMoreCards(false);
-      setCountWithTagRight3(0);
-      updateSwipedRightCount(0);
-      fetchAndSetData();
+      const cardDataArray: CardData[] = shuffledData.map((item, index) => ({
+        id: index + 1,
+        word: item.word,
+        translation: item.translation,
+        tag: '',
+        count: 0,
+      }));
 
-      if (apiData.length > 0) {
-        await AsyncStorage.setItem(
-          'lastCardId',
-          apiData[apiData.length - 1].id.toString(),
-        );
-      }
+      setCards(cardDataArray);
+
+      fetchAndSetData();
     } catch (error) {
       console.error('Error restarting app:', error);
     }
@@ -426,23 +345,13 @@ const SwipeCard = ({updateSwipedRightCount}) => {
   return (
     <View style={styles.container}>
       {loading ? (
-        <Image
-          source={require('../../assets/loading.gif')}
-          style={{
-            width: 100,
-            height: 200,
-            resizeMode: 'contain',
-            alignItems: 'center',
-          }}
-        />
+        <ActivityIndicator size="large" color="#d86072" />
       ) : (
         <>
           <View style={styles.containerProgress}>
-            <RadialProgress
-              value={Math.round((countWithTagRight3 / wordCount) * 100)}
-            />
+            <RadialProgress value={progress} />
           </View>
-          {Math.round((countWithTagRight3 / wordCount) * 100) < 100 ? (
+          {progress < 100.0 ? (
             <SwipeCards
               cards={cards}
               loop={true}
@@ -450,23 +359,15 @@ const SwipeCard = ({updateSwipedRightCount}) => {
               showNope={false}
               showMaybe={false}
               showYup={false}
-              renderCard={cardData => <Card {...cardData} />}
+              renderCard={(cardData: CardData) => <Card {...cardData} />}
               handleYup={handleYup}
               handleNope={handleNope}
               hasMaybeAction={false}
-              renderNoMoreCards={() =>
-                showNoMoreCards ? <NoMoreCards /> : null
-              }
-              initialCardIndex={
-                lastVisitedCardId
-                  ? cards.findIndex(card => card.id === lastVisitedCardId)
-                  : 0
-              }
+              renderNoMoreCards={() => null}
             />
           ) : (
-            showView && <Fireworks />
+            <Fireworks />
           )}
-
           <View style={styles.buttonContainer}>
             <View>
               <CustomButton
@@ -477,16 +378,14 @@ const SwipeCard = ({updateSwipedRightCount}) => {
               />
             </View>
 
-            <View>
-              {Math.round((countWithTagRight3 / wordCount) * 100) != 100 && (
-                <CustomButton
-                  onPress={() => setShowForm(true)}
-                  title={<Add name="add" size={40} />}
-                  buttonColor="#c6c2f2"
-                  textColor="#fff6ee"
-                />
-              )}
-            </View>
+            {progress < 100.0 ? (
+              <CustomButton
+                onPress={() => setShowForm(true)}
+                title={<Add name="add" size={40} />}
+                buttonColor="#c6c2f2"
+                textColor="#fff6ee"
+              />
+            ) : null}
           </View>
 
           <ModalAddForm
@@ -501,21 +400,7 @@ const SwipeCard = ({updateSwipedRightCount}) => {
           />
         </>
       )}
-      <View>
-        {loading && showView && (
-          <CustomButton
-            onPress={async () => {
-              await AsyncStorage.setItem('startButton', '1');
-
-              restartApp();
-              fetchAndSetData();
-            }}
-            title="start"
-            buttonColor="#c6c2f2"
-            textColor="#fff6ee"
-          />
-        )}
-      </View>
+      <ModalFirst visible={isModalVisible} onClose={handleCloseModal} />
     </View>
   );
 };
@@ -527,15 +412,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonContainer: {
-    width: '60%',
+    width: '50%',
     justifyContent: 'space-between',
     flexDirection: 'row',
     paddingBottom: 30,
+    alignItems: 'center',
   },
   button: {
     borderRadius: 15,
     margin: 10,
-    padding: isSmallScreen ? heightPercentageToDP('1%') : 15,
+    padding: 15,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0.5,
@@ -548,7 +434,7 @@ const styles = StyleSheet.create({
   },
   containerProgress: {
     position: 'absolute',
-    top: isSmallScreen ? heightPercentageToDP('30%') : 200,
+    top: 200,
   },
   overlay: {
     flex: 1,
@@ -582,7 +468,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 15,
   },
-  modalButton: {},
   toggleButton: {
     position: 'absolute',
     bottom: 0,
@@ -607,7 +492,6 @@ const styles = StyleSheet.create({
   },
   yupTextStyle: {
     fontSize: 0,
-    color: 'green',
   },
   maybeStyle: {
     position: 'absolute',
@@ -629,7 +513,6 @@ const styles = StyleSheet.create({
   },
   nopeTextStyle: {
     fontSize: 0,
-    color: 'red',
   },
 });
 

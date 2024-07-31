@@ -3,7 +3,6 @@ import { View, StyleSheet, Text, Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 interface RadialProgressProps {
   value: number;
 }
@@ -43,6 +42,8 @@ const RadialProgress: React.FC<RadialProgressProps> = ({ value }) => {
     setPercentage(value);
   }, [value]);
 
+  const formattedPercentage = percentage ? percentage.toFixed(1) : '0.0';
+
   const fgColor = '#d86072';
   const zoomOut = {
     0: {
@@ -64,7 +65,7 @@ const RadialProgress: React.FC<RadialProgressProps> = ({ value }) => {
 
   return (
     <Animatable.View animation={zoomOut} style={styles.container}>
-      {percentage === 100 ? (
+      {percentage >= 100 ? (
         <Image
           source={require('../../assets/trophy.png')}
           style={{
@@ -78,12 +79,12 @@ const RadialProgress: React.FC<RadialProgressProps> = ({ value }) => {
           <View
             style={[
               styles.progressFill,
-              { width: `${percentage}%`, backgroundColor: fgColor },
+              { width: `${isNaN(percentage) ? 0 : percentage}%`, backgroundColor: fgColor },
             ]}
           />
         </View>
       )}
-      <Text style={styles.percentageText}>{percentage}%</Text>
+      <Text style={styles.percentageText}>{formattedPercentage}%</Text>
     </Animatable.View>
   );
 };

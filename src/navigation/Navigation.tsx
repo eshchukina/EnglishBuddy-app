@@ -2,8 +2,8 @@ import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator, TransitionPresets} from '@react-navigation/stack';
 import FlashcardDeck from '../screens/FlashcardDeck';
-import Dashboard from '../screens/Dashboard';
-import DownloadPage from '../screens/DownloadPage';
+import HomePage from '../screens/HomePage';
+import WelcomePage from '../screens/WelcomePage';
 import {RootStackParamList} from '../types/types';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -18,13 +18,13 @@ const Navigation = () => {
           ...TransitionPresets.SlideFromRightIOS,
         }}>
         <Stack.Screen
-          name="Download"
-          component={DownloadPage}
+          name="Welcome"
+          component={WelcomePage}
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="Dashboard"
-          component={Dashboard}
+          name="Home"
+          component={HomePage}
           options={{headerShown: false}}
         />
         <Stack.Screen

@@ -4,7 +4,7 @@ import Swiper from 'react-native-swiper';
 import * as Animatable from 'react-native-animatable';
 import CustomButton from '../buttons/CustomButton';
 
-type DownloadPageProps = {
+type WelcomePageProps = {
   navigation: {
     navigate: (screen: string) => void;
   };
@@ -15,7 +15,7 @@ type DataItem = {
   text: string;
 };
 
-const DownloadPage: React.FC<DownloadPageProps> = ({ navigation }) => {
+const WelcomePage: React.FC<WelcomePageProps> = ({ navigation }) => {
   const [currentPage, setCurrentPage] = useState<number>(0);
 
   const data: DataItem[] = [
@@ -42,7 +42,7 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ navigation }) => {
   ];
 
   const handleButtonClick = () => {
-    navigation.navigate('Dashboard');
+    navigation.navigate('Home');
   };
 
   const zoomOut = {
@@ -187,4 +187,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DownloadPage;
+export default WelcomePage;

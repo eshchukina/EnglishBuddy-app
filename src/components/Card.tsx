@@ -5,7 +5,7 @@ import {
   View,
   Animated,
   Pressable,
-  Dimensions,
+
 } from 'react-native';
 import Star from 'react-native-vector-icons/Ionicons';
 import StarHalf from 'react-native-vector-icons/Ionicons';
@@ -13,13 +13,6 @@ import StarOutline from 'react-native-vector-icons/Ionicons';
 import Sound from 'react-native-vector-icons/AntDesign';
 import Tts from 'react-native-tts';
 
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from 'react-native-responsive-screen';
-
-const { width: screenWidth } = Dimensions.get('window');
-const isSmallScreen = screenWidth < 375;
 
 interface CardProps {
   word: string;
@@ -83,8 +76,8 @@ const Card: React.FC<CardProps> = ({ word, translation, count }) => {
 
   const renderStar = () => {
     if (count < 0 || count == null) {
-      return null;
-    } else if (count === 1) {
+      return <StarOutline name="star-outline" size={30} color="#262628" />;
+    } else if (count === 1  || count == null) {
       return <StarHalf name="star-half-sharp" size={32} color="#262628" />;
     } else if (count === 2) {
       return <Star name="star-sharp" size={32} color="#262628" />;
@@ -124,9 +117,9 @@ const Card: React.FC<CardProps> = ({ word, translation, count }) => {
 
 const styles = StyleSheet.create({
   flashcard: {
-    marginTop: isSmallScreen ? heightPercentageToDP('20%') : 50,
-    width: isSmallScreen ? widthPercentageToDP('60%') : 300,
-    height: isSmallScreen ? heightPercentageToDP('25%') : 200,
+    marginTop: 50,
+    width:  300,
+    height: 200,
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
@@ -159,7 +152,7 @@ const styles = StyleSheet.create({
     color: '#262628',
     fontFamily: 'days2',
     textAlign: 'center',
-    fontSize: isSmallScreen ? heightPercentageToDP('5%') : 35,
+    fontSize: 35,
   },
   cardContainer: {
     textAlign: 'center',
