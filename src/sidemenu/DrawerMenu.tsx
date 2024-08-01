@@ -16,15 +16,13 @@ import i18n from '../translation/i18n';
 import sendEmail from '../utils/sendEmail';
 import messaging from '@react-native-firebase/messaging';
 
-interface DrawerMenuProps {
-
-}
+interface DrawerMenuProps {}
 
 const DrawerMenu: React.FC<DrawerMenuProps> = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
   const [isEnabledNot, setIsEnabledNot] = useState(true);
-   const {t} = useTranslation();
+  const {t} = useTranslation();
 
   useEffect(() => {
     const loadSwitchState = async () => {
@@ -34,7 +32,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
           const newState = JSON.parse(storedState);
           setIsEnabled(newState);
           const newLang = newState ? 'en' : 'ru';
-           i18n.changeLanguage(newLang);
+          i18n.changeLanguage(newLang);
           await AsyncStorage.setItem('selectedLanguage', newLang);
           console.log('Selected language:', newLang);
         } else {
@@ -60,7 +58,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
     setModalVisible(false);
   };
 
-
   useEffect(() => {
     const loadNotificationState = async () => {
       try {
@@ -75,8 +72,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
           setIsEnabledNot(false);
           await unsubscribeFromTopic('all');
         }
-
-
       } catch (error) {
         console.error('Error loading notification state:', error);
       }
@@ -85,14 +80,12 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
     loadNotificationState();
   }, []);
 
-
-
   const toggleSwitch = async () => {
     const newState = !isEnabled;
     const newLang = newState ? 'en' : 'ru';
 
     try {
-     await i18n.changeLanguage(newLang);
+      await i18n.changeLanguage(newLang);
       console.log('Language changed to:', newLang);
       await AsyncStorage.setItem('languageSwitch', JSON.stringify(newState));
       await AsyncStorage.setItem('selectedLanguage', newLang);
@@ -108,8 +101,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
     Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
   };
 
-
-
   const toggleSubscription = async (newValue: boolean) => {
     setIsEnabledNot(newValue);
 
@@ -123,12 +114,9 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
     if (newValue) {
       await subscribeToTopic('all');
       AsyncStorage.setItem('isEnabled1', 'true');
-      AsyncStorage.setItem('notificationEnabled', 'true');
-      await AsyncStorage.setItem('permissionRequested', 'true');
     } else {
       await unsubscribeFromTopic('all');
       AsyncStorage.setItem('isEnabled1', 'false');
-      AsyncStorage.setItem('permissionRequested', 'false');
     }
   };
 
@@ -149,7 +137,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
       console.error('Topic unsubscription error:', error);
     }
   };
-
 
   return (
     <>
@@ -241,21 +228,19 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
           />
         </View>
         <View style={styles.switchNotification}>
-            
-            <ToggleSwitch
-              isOn={isEnabledNot}
-              onColor="#fff6ee"
-              offColor="#fff6ee"
-              thumbOnStyle={styles.thumbOnStyle}
-              thumbOffStyle={styles.thumbOffStyle}
-              size="medium"
-              onToggle={toggleSubscription}
-            />
-<Text style={styles.textTitleNot}>           
-{isEnabledNot ? t('on') : t('off')}
-</Text>
-      
-          </View>
+          <ToggleSwitch
+            isOn={isEnabledNot}
+            onColor="#fff6ee"
+            offColor="#fff6ee"
+            thumbOnStyle={styles.thumbOnStyle}
+            thumbOffStyle={styles.thumbOffStyle}
+            size="medium"
+            onToggle={toggleSubscription}
+          />
+          <Text style={styles.textTitleNot}>
+            {isEnabledNot ? t('on') : t('off')}
+          </Text>
+        </View>
       </View>
 
       <ModalInstructions visible={modalVisible} onClose={closeModal} />
@@ -267,7 +252,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingLeft: 10,
-    alignItems:"flex-start",
+    alignItems: 'flex-start',
     justifyContent: 'space-around',
   },
   header: {
@@ -311,18 +296,17 @@ const styles = StyleSheet.create({
   button: {
     marginVertical: 10,
   },
-  textTitleNot:{
-    fontFamily:"days2",
-    color:"#262628",
-    fontSize:18,
+  textTitleNot: {
+    fontFamily: 'days2',
+    color: '#262628',
+    fontSize: 18,
   },
-  switchNotification:{
-    flexDirection:"row",
-    width:"80%",
+  switchNotification: {
+    flexDirection: 'row',
+    width: '80%',
     justifyContent: 'space-between',
-
     alignItems: 'center',
-  }
+  },
 });
 
 export default DrawerMenu;

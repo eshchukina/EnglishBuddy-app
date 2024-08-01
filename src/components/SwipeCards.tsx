@@ -39,6 +39,10 @@ const SwipeCard: React.FC = () => {
   const [totalSwipesRight, setTotalSwipesRight] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [wordCount, setWordCount] = useState<number>(0);
+  const [wordCount3, setWordCount3] = useState<number>(0);
+  console.log('totalSwipesRight', totalSwipesRight)
+  console.log('wordCount', wordCount)
 
   useEffect(() => {
     const checkIfModalShown = async () => {
@@ -62,9 +66,28 @@ const SwipeCard: React.FC = () => {
   }, []);
 
   const calculateProgress = () => {
-    setProgress((totalSwipesRight / 3000) * 100);
+    setProgress((totalSwipesRight / (wordCount * 3)) * 100);
     AsyncStorage.setItem('percentage', progress.toString());
+    console.log('totalSwipesRight', totalSwipesRight)
   };
+
+  useEffect(() => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'SELECT COUNT(*) as count FROM words;',
+        [],
+        (tx, result) => {
+          const count = result.rows.item(0).count;
+          setWordCount(count);
+          console.log('Word count:', count); // Выводим количество слов в консоль
+   
+        },
+        error => {
+          console.error('Error while fetching word count from SQLite:', error);
+        }
+      );
+    });
+  }, []);
 
   useEffect(() => {
     const loadTotalSwipesRight = async () => {
@@ -102,7 +125,7 @@ const SwipeCard: React.FC = () => {
       'CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, translation TEXT, tag TEXT, count INTEGER);',
       [],
       () => {
-        console.log('Table created successfully');
+        // console.log('Table created successfully');
       },
       error => {
         console.error('Error creating table:', error);
@@ -139,9 +162,9 @@ const SwipeCard: React.FC = () => {
                 'INSERT INTO words (word, translation, tag, count) VALUES (?, ?, ?, ?);',
                 [word, translation, '', 0],
 
-                error => {
-                  console.log('Error inserting data: ', error);
-                },
+                // error => {
+                //   console.log('Error inserting data: ', error);
+                // },
               );
             });
           });
@@ -176,19 +199,7 @@ const SwipeCard: React.FC = () => {
             );
           });
 
-          db.transaction(tx => {
-            tx.executeSql(
-              'SELECT COUNT(*) as count FROM words;',
-              [],
-
-              error => {
-                console.log(
-                  'Error while fetching word count from SQLite:',
-                  error,
-                );
-              },
-            );
-          });
+    
         }
       });
       let count;
@@ -209,13 +220,15 @@ const SwipeCard: React.FC = () => {
       tx.executeSql(
         'SELECT COUNT(*) as count FROM words WHERE count >= 3;',
         [],
-
-        error => {
-          console.log(
-            'Error fetching count of cards with count >= 3 from SQLite:',
-            error,
-          );
+        (tx, result) => {
+          const count3 = result.rows.item(0).count;
+          setWordCount3(count3);
+          console.log('Word count3:', count3); // Выводим количество слов в консоль
+   
         },
+        error => {
+          console.error('Error while fetching word count from SQLite:', error);
+        }
       );
     });
   }, [swipedRightCount, swipedLeftCount]);
@@ -238,9 +251,9 @@ const SwipeCard: React.FC = () => {
             "UPDATE words SET tag = 'right', count = ? WHERE id = ?;",
             [currentCount + 1, card.id],
 
-            error => {
-              console.log('Error updating tag and count:', error);
-            },
+            // error => {
+            //   console.log('Error updating tag and count:', error);
+            // },
           );
         },
       );
@@ -295,9 +308,11 @@ const SwipeCard: React.FC = () => {
     };
 
     setCards([...cards, newCard]);
+    fetchAndSetData();
   };
 
   const restartApp = async () => {
+    setLoading(true)
     setSwipedRightCount(0);
     setSwipedLeftCount(0);
     setTotalSwipesRight(0);
@@ -340,6 +355,7 @@ const SwipeCard: React.FC = () => {
     } catch (error) {
       console.error('Error restarting app:', error);
     }
+    setLoading(false)
   };
 
   return (

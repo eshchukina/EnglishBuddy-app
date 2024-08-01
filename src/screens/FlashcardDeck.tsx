@@ -53,11 +53,11 @@ const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
           buttonColor="#fff6ee"
           textColor="#c6c2f2"
         />
-      </View>
-      <Text style={styles.text}>
+         <Text style={styles.text}>
  
         {t('description')}
       </Text>
+      </View>
 
       <SwipeCards
     
@@ -79,7 +79,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     width: '100%',
     justifyContent: 'flex-start',
-  } as ViewStyle,
+  },
+  titleContainer:{
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'flex-start',
+  },
   textIcon: {
     fontFamily: 'vidaloka',
     fontSize: 22,

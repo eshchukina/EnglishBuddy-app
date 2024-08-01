@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {View, StyleSheet, Text, Image, ImageSourcePropType} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTranslation} from 'react-i18next';
+import {useFocusEffect} from '@react-navigation/native';
 
 interface MedalInfo {
   color: string;
@@ -14,20 +15,22 @@ const Passing: React.FC = () => {
   const [storedPercentage, setStoredPercentage] = useState<number | null>(null);
   const {t} = useTranslation();
 
-  useEffect(() => {
-    const loadPercentage = async () => {
-      try {
-        const storedPercentageStr = await AsyncStorage.getItem('percentage');
-        if (storedPercentageStr !== null) {
-          setStoredPercentage(parseFloat(storedPercentageStr));
-        }
-      } catch (error) {
-        console.error('Error loading percentage from AsyncStorage:', error);
+  const loadPercentage = async () => {
+    try {
+      const storedPercentageStr = await AsyncStorage.getItem('percentage');
+      if (storedPercentageStr !== null) {
+        setStoredPercentage(parseFloat(storedPercentageStr));
       }
-    };
+    } catch (error) {
+      console.error('Error loading percentage from AsyncStorage:', error);
+    }
+  };
 
-    loadPercentage();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadPercentage();
+    }, [])
+  );
 
   const getMedalInfo = (): MedalInfo => {
     if (storedPercentage === null) {
