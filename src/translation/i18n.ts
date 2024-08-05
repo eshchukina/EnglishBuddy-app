@@ -19,7 +19,7 @@ const resources = {
       text_intermediate: 'Excellent, keep it up!',
       level_advanced: 'Your level: Advanced',
       text_advanced: 'Incredible, the finish line is near!',
-      evel_expert: 'Expert',
+      level_expert: 'Expert',
       text_expert: "You've done it all!",
       description:
         "Swipe the card to the left if you don't know the word, and to the right if you know it!",

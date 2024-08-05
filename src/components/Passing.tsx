@@ -48,21 +48,21 @@ const Passing: React.FC = () => {
         text: t('text_novice'),
         image: require('../../assets/medal(1).png'),
       };
-    } else if (storedPercentage >= 34 && storedPercentage <= 66) {
+    } else if (storedPercentage > 33 && storedPercentage <= 66) {
       return {
         color: '#c0c0c0',
         level: t('level_intermediate'),
         text: t('text_intermediate'),
         image: require('../../assets/medal(3).png'),
       };
-    } else if (storedPercentage >= 67 && storedPercentage <= 99) {
+    } else if (storedPercentage > 66 && storedPercentage <= 99) {
       return {
         color: '#FFD700',
         level: t('level_advanced'),
         text: t('text_advanced'),
         image: require('../../assets/medal.png'),
       };
-    } else if (storedPercentage >= 100) {
+    } else if (storedPercentage > 99) {
       return {
         color: '#FFD700',
         level: t('level_expert'),

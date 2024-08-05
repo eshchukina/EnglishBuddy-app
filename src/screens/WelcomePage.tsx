@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Swiper from 'react-native-swiper';
 import * as Animatable from 'react-native-animatable';
 import CustomButton from '../buttons/CustomButton';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WelcomePageProps = {
   navigation: {
@@ -17,6 +18,27 @@ type DataItem = {
 
 const WelcomePage: React.FC<WelcomePageProps> = ({ navigation }) => {
   const [currentPage, setCurrentPage] = useState<number>(0);
+  const [isFirstLaunch, setIsFirstLaunch] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkIfFirstLaunch = async () => {
+      try {
+        const value = await AsyncStorage.getItem('hasLaunched');
+        if (value !== null) {
+          // Значение существует, значит страница уже была показана
+          setIsFirstLaunch(false);
+          navigation.navigate('Home');
+        } else {
+          // Значение не существует, значит это первый запуск
+          await AsyncStorage.setItem('hasLaunched', 'true');
+        }
+      } catch (error) {
+        console.error('Ошибка при чтении из AsyncStorage', error);
+      }
+    };
+
+    checkIfFirstLaunch();
+  }, [navigation]);
 
   const data: DataItem[] = [
     {
@@ -63,8 +85,15 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ navigation }) => {
     },
   };
 
+
+  if (!isFirstLaunch) {
+    return null; // Не показывать WelcomePage, если это не первый запуск
+  }
+
   return (
-    <View style={styles.container}>
+    <Animatable.View 
+    animation={zoomOut}
+    style={styles.container}>
       <View style={styles.rotatingImageContainer}>
         <Animatable.Image
           animation={zoomOut}
@@ -128,7 +157,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ navigation }) => {
           </View>
         )}
       </View>
-    </View>
+    </Animatable.View>
   );
 };
 

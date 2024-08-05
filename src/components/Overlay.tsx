@@ -18,7 +18,7 @@ const Overlay: React.FC<OverlayProps> = ({onPress}) => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [fadeAnim]);
 
@@ -26,7 +26,7 @@ const Overlay: React.FC<OverlayProps> = ({onPress}) => {
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 1000,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       setIsVisible(false);
       onPress();

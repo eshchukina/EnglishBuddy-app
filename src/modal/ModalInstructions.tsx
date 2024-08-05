@@ -94,9 +94,9 @@ const ModalInstructions: React.FC<ModalInstructionsProps> = ({
               <Text style={[styles.textModal, styles.buttonInfo]}>
                 <View style={styles.buttonContainer}>
                   <Text style={[styles.buttonText]}>open cards</Text>
-                  <Text style={[styles.buttonText]}>
+        
                     <Cards name="cards" color="#262628" size={40} />
-                  </Text>
+              
                 </View>
               </Text>
 
@@ -186,6 +186,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'days2',
   },
+  buttonContainer:{
+    backgroundColor:"#d6dc82",
+    padding:10,
+
+    alignItems:"center",
+    textAlign:"center",
+    borderRadius:15,
+  }
 });
 
 export default ModalInstructions;

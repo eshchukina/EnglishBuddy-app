@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height: 7,
     width: 7,
-    borderRadius: 3,
+    borderRadius: 10,
   },
 });
 

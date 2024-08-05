@@ -16,6 +16,7 @@ import i18n from '../translation/i18n';
 import sendEmail from '../utils/sendEmail';
 import messaging from '@react-native-firebase/messaging';
 
+
 interface DrawerMenuProps {}
 
 const DrawerMenu: React.FC<DrawerMenuProps> = () => {
@@ -23,6 +24,12 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
   const [isEnabledNot, setIsEnabledNot] = useState(true);
   const {t} = useTranslation();
+  
+
+
+
+
+
 
   useEffect(() => {
     const loadSwitchState = async () => {
@@ -97,7 +104,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = () => {
 
   const handleButtonPress = () => {
     const url =
-      'https://www.freeprivacypolicy.com/live/fb11492e-6e29-49d1-90dd-af0fc50e0100';
+      'https://www.freeprivacypolicy.com/live/36e46baf-b61f-4d5b-abae-24e02900c4b1';
     Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
   };
 

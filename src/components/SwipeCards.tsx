@@ -1,6 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {View, StyleSheet, ActivityIndicator} from 'react-native';
-import NetInfo from '@react-native-community/netinfo';
 import SQLite from 'react-native-sqlite-2';
 import SwipeCards from 'react-native-swipe-cards';
 import ModalAddForm from '../modal/ModalAddForm';
@@ -13,12 +12,18 @@ import Reload from 'react-native-vector-icons/AntDesign';
 import ModalRestart from '../modal/ModalRestart';
 import CustomButton from '../buttons/CustomButton';
 import ModalFirst from '../modal/ModalFirst';
+import { useFocusEffect } from '@react-navigation/native';
+
 const db = SQLite.openDatabase('mydatabase.db');
 
-interface ApiData {
+interface Word {
+  id: number;
   word: string;
   translation: string;
+  count: number;
 }
+
+
 
 interface CardData {
   id: number;
@@ -29,20 +34,65 @@ interface CardData {
 }
 
 const SwipeCard: React.FC = () => {
-  const [dataSource, setDataSource] = useState<string>('');
-  const [cards, setCards] = useState<CardData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [cards, setCards] = useState<Word[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [swipedRightCount, setSwipedRightCount] = useState(0);
   const [swipedLeftCount, setSwipedLeftCount] = useState(0);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [totalSwipesRight, setTotalSwipesRight] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [wordCount, setWordCount] = useState<number>(0);
-  const [wordCount3, setWordCount3] = useState<number>(0);
-  console.log('totalSwipesRight', totalSwipesRight)
-  console.log('wordCount', wordCount)
+  const [swipedRightCount, setSwipedRightCount] = useState<number>(0);
+  const [totalSwipesRight, setTotalSwipesRight] = useState<number>(0);
+  const [newWordsCount, setNewWordsCount] = useState<number>(0);
+
+  console.log('progress', progress);
+  console.log('cards', cards.length);
+  console.log('totalSwipesRight', totalSwipesRight);
+
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadProgress = async () => {
+        try {
+          const storedProgress = await AsyncStorage.getItem('percentage');
+          if (storedProgress !== null) {
+            setProgress(parseFloat(storedProgress));
+          }
+        } catch (error) {
+          console.error('Error loading progress:', error);
+        }
+      };
+
+      loadProgress();
+    }, [progress])
+  );
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const [storedCount, storedTotalSwipesRight, hasSeenModal] = await Promise.all([
+          AsyncStorage.getItem('newWordsCount'),
+          AsyncStorage.getItem('totalSwipesRight'),
+          AsyncStorage.getItem('hasSeenModal')
+        ]);
+        if (storedCount !== null) {
+          setNewWordsCount(parseInt(storedCount, 10));
+        }
+        if (storedTotalSwipesRight !== null) {
+          setTotalSwipesRight(parseInt(storedTotalSwipesRight, 10));
+        }
+        if (!hasSeenModal) {
+          setIsModalVisible(true);
+        }
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      }
+    };
+
+    loadInitialData();
+  }, []);
+
+
 
   useEffect(() => {
     const checkIfModalShown = async () => {
@@ -56,184 +106,123 @@ const SwipeCard: React.FC = () => {
 
   const handleCloseModal = async () => {
     restartApp();
-    fetchAndSetData();
     await AsyncStorage.setItem('hasSeenModal', 'true');
     setIsModalVisible(false);
   };
 
-  useEffect(() => {
-    fetchAndSetData();
-  }, []);
-
-  const calculateProgress = () => {
-    setProgress((totalSwipesRight / (wordCount * 3)) * 100);
-    AsyncStorage.setItem('percentage', progress.toString());
-    console.log('totalSwipesRight', totalSwipesRight)
-  };
-
-  useEffect(() => {
+  const createTable = useCallback(() => {
     db.transaction(tx => {
       tx.executeSql(
-        'SELECT COUNT(*) as count FROM words;',
+        `CREATE TABLE IF NOT EXISTS words (
+          id INTEGER PRIMARY KEY,
+          word TEXT,
+          translation TEXT,
+          count INTEGER
+        )`,
         [],
-        (tx, result) => {
-          const count = result.rows.item(0).count;
-          setWordCount(count);
-          console.log('Word count:', count); // Выводим количество слов в консоль
-   
+        () => {
+          // console.log('Table created');
         },
         error => {
-          console.error('Error while fetching word count from SQLite:', error);
-        }
+          // console.log('Error creating table:', error);
+        },
       );
     });
   }, []);
 
-  useEffect(() => {
-    const loadTotalSwipesRight = async () => {
-      try {
-        const savedTotalSwipesRight = await AsyncStorage.getItem(
-          'totalSwipesRight',
+  const saveWords = useCallback((words: Omit<Word, 'count'>[]) => {
+    db.transaction(tx => {
+      words.forEach(word => {
+        tx.executeSql(
+          `INSERT INTO words (id, word, translation, count) VALUES (?, ?, ?, ?)`,
+          [word.id, word.word, word.translation, 0],
+          () => {
+            // console.log(`Word ${word.word} inserted`);
+          },
+          error => {
+            // console.log('Error inserting word:', error);
+          },
         );
-        if (savedTotalSwipesRight !== null) {
-          setTotalSwipesRight(parseInt(savedTotalSwipesRight, 10));
-        }
-      } catch (error) {
-        console.error(
-          'Error loading totalSwipesRight from AsyncStorage:',
-          error,
-        );
-      }
-    };
-
-    loadTotalSwipesRight();
-    fetchAndSetData();
+      });
+    });
   }, []);
 
-  const fetchDataFromAPI = async () => {
+  const getWords = useCallback(() => {
+    
+    db.transaction(tx => {
+      tx.executeSql(
+        `SELECT * FROM words WHERE count < 3 ORDER BY RANDOM()`,
+        [],
+        (tx, results) => {
+          const rows = results.rows;
+          const wordsList: Word[] = [];
+          for (let i = 0; i < rows.length; i++) {
+            wordsList.push(rows.item(i));
+          }
+          // console.log('Fetched words from DB:', wordsList);
+          setCards(wordsList);
+        },
+        error => {
+          // console.log('Error fetching words:', error);
+        },
+      );
+    });
+  }, []);
+
+  const fetchWords = useCallback(async () => {
+
     try {
       const response = await fetch('https://eb-api.una-team.pro/words');
-      const data = await response.json();
-      return data;
+      const data: Omit<Word, 'count'>[] = await response.json();
+      // console.log('Fetched words from API:', data);
+      // saveWords(data);
+      //const first100Words = data.slice(0, 50);
+
+      // Сохраняем эти записи в SQLite
+      saveWords(data);
     } catch (error) {
-      throw error;
+      // console.error('Error fetching words:', error);
     }
-  };
 
-  db.transaction(tx => {
-    tx.executeSql(
-      'CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, translation TEXT, tag TEXT, count INTEGER);',
-      [],
-      () => {
-        // console.log('Table created successfully');
-      },
-      error => {
-        console.error('Error creating table:', error);
-      },
-    );
-  });
-
-  const fetchAndSetData = async () => {
-    try {
-      const netInfoState = await NetInfo.fetch();
-
-      db.transaction(async tx => {
-        const countResult = await new Promise((resolve, reject) => {
-          tx.executeSql(
-            'SELECT COUNT(*) as count FROM words;',
-            [],
-            (tx, result) => {
-              resolve(result);
-            },
-            error => {
-              reject(error);
-            },
-          );
-        });
-
-        let count = countResult.rows.item(0).count;
-
-        if (count === 0 && netInfoState.isConnected) {
-          const apiData = await fetchDataFromAPI();
-
-          apiData.forEach((word: string, translation: string) => {
-            db.transaction(tx => {
-              tx.executeSql(
-                'INSERT INTO words (word, translation, tag, count) VALUES (?, ?, ?, ?);',
-                [word, translation, '', 0],
-
-                // error => {
-                //   console.log('Error inserting data: ', error);
-                // },
-              );
-            });
-          });
-
-          setCards(apiData);
-        } else {
-          setDataSource('SQLite');
-
-          db.transaction(tx => {
-            tx.executeSql(
-              'SELECT * FROM words WHERE count < 3 ORDER BY RANDOM();',
-              [],
-              (tx, result) => {
-                const len = result.rows.length;
-                const data = [];
-                for (let i = 0; i < len; i++) {
-                  const row = result.rows.item(i);
-                  data.push({
-                    id: row.id,
-                    word: row.word,
-                    translation: row.translation,
-                    tag: row.tag,
-                    count: row.count,
-                  });
-                }
-                const shuffledData = data.sort(() => Math.random() - 0.5);
-
-                setCards(shuffledData);
-
-                setLoading(false);
-              },
-            );
-          });
-
-    
-        }
-      });
-      let count;
-      if (count === 0 && netInfoState.isConnected) {
-        setCards(apiData);
-      } else {
-        setDataSource('SQLite');
-      }
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+  }, [saveWords]);
 
   useEffect(() => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT COUNT(*) as count FROM words WHERE count >= 3;',
-        [],
-        (tx, result) => {
-          const count3 = result.rows.item(0).count;
-          setWordCount3(count3);
-          console.log('Word count3:', count3); // Выводим количество слов в консоль
-   
-        },
-        error => {
-          console.error('Error while fetching word count from SQLite:', error);
-        }
-      );
+    createTable();
+    fetchWords().then(() => {
+      getWords();
     });
-  }, [swipedRightCount, swipedLeftCount]);
+  }, [createTable, fetchWords, getWords]);
 
-  const handleYup = (card: number) => {
+  useEffect(() => {
+    calculateProgress();
+  }, [totalSwipesRight]);
+  
+
+  const calculateProgress = async () => {
+    try {
+      const totalSwipesRightValue = await AsyncStorage.getItem('totalSwipesRight');
+      const swipes = totalSwipesRightValue ? parseInt(totalSwipesRightValue, 10) : 0;
+  
+      if (cards.length === 0) {
+        // Обработка случая, когда нет карточек
+        setProgress(0);
+        return;
+      }
+ // console.log('newWordsCount', newWordsCount)
+      // Рассчет прогресса
+      const newProgress = (swipes /  3000) * 100;
+      setProgress(newProgress);
+  
+      // Сохранение прогресса в AsyncStorage
+      await AsyncStorage.setItem('percentage', newProgress.toString());
+    } catch (error) {
+      console.error('Error calculating progress:', error);
+    }
+  };
+  
+  
+
+  const handleYup = (card: Word) => {
     setSwipedRightCount(prevCount => prevCount + 1);
     setTotalSwipesRight(prevTotal => {
       const newTotal = prevTotal + 1;
@@ -241,122 +230,134 @@ const SwipeCard: React.FC = () => {
       return newTotal;
     });
     calculateProgress();
+
     db.transaction(tx => {
       tx.executeSql(
         'SELECT count FROM words WHERE id = ?;',
         [card.id],
         (tx, result) => {
-          const currentCount = result.rows.item(0).count || 0;
-          tx.executeSql(
-            "UPDATE words SET tag = 'right', count = ? WHERE id = ?;",
-            [currentCount + 1, card.id],
-
-            // error => {
-            //   console.log('Error updating tag and count:', error);
-            // },
-          );
+          if (result.rows.length > 0) {
+            const currentCount = result.rows.item(0).count || 0;
+            const newCount = currentCount + 1;
+            tx.executeSql(
+              'UPDATE words SET count = ? WHERE id = ?;',
+              [newCount, card.id],
+              () => {
+                setCards(prevCards =>
+                  prevCards.map(c =>
+                    c.id === card.id ? {...c, count: newCount} : c,
+                  ).filter(c => c.count < 3),
+                );
+                setCards(prevCards => {
+                  const shuffledCards = [...prevCards];
+                  for (let i = shuffledCards.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledCards[i], shuffledCards[j]] = [
+                      shuffledCards[j],
+                      shuffledCards[i],
+                    ];
+                  }
+                  return shuffledCards;
+                });
+              },
+              error => {
+                console.log('Error updating count:', error);
+              },
+            );
+          }
         },
-      );
-    });
-  };
-
-  const handleNope = (card: number) => {
-    setSwipedLeftCount(prevCount => prevCount + 1);
-    setTotalSwipesRight(prevTotal => {
-      const newTotal = prevTotal - 1;
-      AsyncStorage.setItem('totalSwipesRight', newTotal.toString());
-      return newTotal;
-    });
-    calculateProgress();
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT count FROM words WHERE id = ?;',
-        [card.id],
-        (tx, result) => {
-          const currentCount = result.rows.item(0).count || 0;
-          tx.executeSql(
-            "UPDATE words SET tag = 'left', count = ? WHERE id = ?;",
-            [currentCount + 1, card.id],
-
-            error => {
-              console.log('Error updating tag and count:', error);
-            },
-          );
-        },
-      );
-    });
-  };
-
-  const handleAddWord = (word: string, translation: string) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'INSERT INTO words (word, translation, tag, count) VALUES (?, ?, ?, ?);',
-        [word, translation, '', 0],
-
         error => {
-          console.log('Error inserting data: ', error);
+          console.log('Error fetching count:', error);
         },
       );
     });
-
-    const newCard: CardData = {
-      id: cards.length + 1,
-      word,
-      translation,
-      tag: '',
-      count: 0,
-    };
-
-    setCards([...cards, newCard]);
-    fetchAndSetData();
   };
 
-  const restartApp = async () => {
-    setLoading(true)
-    setSwipedRightCount(0);
-    setSwipedLeftCount(0);
-    setTotalSwipesRight(0);
-    setProgress(0);
-    AsyncStorage.removeItem('percentage');
-    AsyncStorage.removeItem('totalSwipesRight');
+  const handleNope = (card: Word) => {
+    setSwipedLeftCount(prevCount => prevCount + 1);
+
+  };
+
+  const addWordToDatabase = useCallback(async (word: string, translation: string) => {  
     try {
+      // Обновляем счетчик новых слов
+      const currentCount = await AsyncStorage.getItem('newWordsCount');
+      const newCount = currentCount ? parseInt(currentCount, 10) + 1 : 1;
+      await AsyncStorage.setItem('newWordsCount', newCount.toString());
+  
       db.transaction(tx => {
-        tx.executeSql('DELETE FROM words;', [], result => {
-          console.log('Table cleared successfully', result);
-        });
+        tx.executeSql(
+          `INSERT INTO words (word, translation, count) VALUES (?, ?, ?)`,
+          [word, translation, 0],
+          () => {
+            console.log(`Word ${word} inserted`);
+            // Обновляем количество новых слов в состоянии
+            setNewWordsCount(newCount);
+            // Перезагрузите слова, чтобы обновить список карточек
+            getWords();
+          },
+          error => {
+            console.error('Error inserting word:', error);
+          },
+        );
       });
-
-      const apiData: ApiData[] = await fetchDataFromAPI();
-      const shuffledData = apiData.sort(() => Math.random() - 0.5);
-
-      shuffledData.forEach(({word, translation}) => {
-        db.transaction(tx => {
-          tx.executeSql(
-            'INSERT INTO words (word, translation, tag, count) VALUES (?, ?, ?, ?);',
-            [word, translation, '', 0],
-            error => {
-              console.log('Error inserting data: ', error);
-            },
-          );
-        });
-      });
-
-      const cardDataArray: CardData[] = shuffledData.map((item, index) => ({
-        id: index + 1,
-        word: item.word,
-        translation: item.translation,
-        tag: '',
-        count: 0,
-      }));
-
-      setCards(cardDataArray);
-
-      fetchAndSetData();
     } catch (error) {
-      console.error('Error restarting app:', error);
+      console.error('Error updating new words count:', error);
     }
-    setLoading(false)
+  }, [getWords]);
+  
+  const handleAddWord = (word: string, translation: string) => {
+
+    addWordToDatabase(word, translation);
+
+
   };
+  
+const restartApp = async () => {
+  setLoading(true);
+  setTotalSwipesRight(0);
+  try {
+    console.log('Restarting app...');
+
+    // Очистить AsyncStorage
+    await AsyncStorage.removeItem('totalSwipesRight');
+    await AsyncStorage.removeItem('percentage');
+    await AsyncStorage.removeItem('newWordsCount');
+
+    console.log('Cleared AsyncStorage');
+
+    // Удалить таблицу и создать её заново
+    db.transaction(tx => {
+      tx.executeSql(
+        'DROP TABLE IF EXISTS words;',
+        [],
+        () => {
+          console.log('Table dropped');
+          // Таблица успешно удалена, теперь создаём её заново
+          createTable();
+          console.log('Table recreated');
+
+          // Загрузить данные из API
+          fetchWords().then(() => {
+            getWords();
+            console.log('Words fetched and loaded');
+          }).catch(error => {
+            console.error('Error fetching words:', error);
+          });
+
+          // Пересчитать прогресс
+          calculateProgress();
+        },
+        error => {
+          console.error('Error dropping table:', error);
+        },
+      );
+    });
+  } catch (error) {
+    console.error('Error restarting app:', error);
+  }
+  setLoading(false);
+};
 
   return (
     <View style={styles.container}>
@@ -367,7 +368,10 @@ const SwipeCard: React.FC = () => {
           <View style={styles.containerProgress}>
             <RadialProgress value={progress} />
           </View>
-          {progress < 100.0 ? (
+          <View style={styles.firework}>
+            {progress >= 100 ? <Fireworks /> : null}
+          </View>
+          {progress < 100 ? (
             <SwipeCards
               cards={cards}
               loop={true}
@@ -379,11 +383,12 @@ const SwipeCard: React.FC = () => {
               handleYup={handleYup}
               handleNope={handleNope}
               hasMaybeAction={false}
-              renderNoMoreCards={() => null}
+              renderNoMoreCards={() => {
+                null;
+              }}
             />
-          ) : (
-            <Fireworks />
-          )}
+          ) : null}
+
           <View style={styles.buttonContainer}>
             <View>
               <CustomButton
@@ -393,22 +398,25 @@ const SwipeCard: React.FC = () => {
                 textColor="#fff6ee"
               />
             </View>
-
-            {progress < 100.0 ? (
+           
+           
+            {/* {progress < 100.0 ? (
               <CustomButton
                 onPress={() => setShowForm(true)}
                 title={<Add name="add" size={40} />}
                 buttonColor="#c6c2f2"
                 textColor="#fff6ee"
               />
-            ) : null}
-          </View>
+            ) : null} */}
 
-          <ModalAddForm
+          </View>
+          {/* <ModalAddForm
             visible={showForm}
             onClose={() => setShowForm(false)}
             onAddWord={handleAddWord}
-          />
+          /> */}
+
+          
           <ModalRestart
             isVisible={showConfirmationModal}
             onClose={() => setShowConfirmationModal(false)}
@@ -428,9 +436,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonContainer: {
-    width: '50%',
+
     justifyContent: 'space-between',
-    flexDirection: 'row',
+
     paddingBottom: 30,
     alignItems: 'center',
   },
@@ -529,6 +537,10 @@ const styles = StyleSheet.create({
   },
   nopeTextStyle: {
     fontSize: 0,
+  },
+  firework: {
+    position: 'absolute',
+    top: 150,
   },
 });
 

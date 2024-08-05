@@ -17,6 +17,7 @@ import Setting from 'react-native-vector-icons/SimpleLineIcons';
 import CustomButton from '../buttons/CustomButton';
 import DrawerMenu from '../sidemenu/DrawerMenu';
 import {useTranslation} from 'react-i18next';
+import ModalInstructions from '../modal/ModalInstructions';
 
 interface HomePageProps {
   navigation: {
@@ -80,12 +81,15 @@ const HomePage: React.FC<HomePageProps> = ({navigation}) => {
   }, [fadeAnim1, fadeAnim2, fadeAnim3]);
 
   useEffect(() => {
-    AsyncStorage.getItem('instructionsShown').then(value => {
+    const checkInstructionsShown = async () => {
+      const value = await AsyncStorage.getItem('instructionsShown');
       if (!value) {
         setShowInstructions(true);
-        AsyncStorage.setItem('instructionsShown', 'true');
+        await AsyncStorage.setItem('instructionsShown', 'true');
       }
-    });
+    };
+
+    checkInstructionsShown();
   }, []);
 
   const openFlash = () => {
@@ -164,8 +168,16 @@ const HomePage: React.FC<HomePageProps> = ({navigation}) => {
           ]}>
           <DrawerMenu />
         </Animated.View>
-        {isDrawerOpen && <Overlay onPress={toggleDrawer} />}
+        {isDrawerOpen && <Overlay onPress={toggleDrawer} />} 
+         {showInstructions && (
+                  <ModalInstructions
+                  visible={showInstructions}
+                  onClose={() => setShowInstructions(false)}
+                />
+        )}
       </View>
+
+    
     </TouchableWithoutFeedback>
   );
 };

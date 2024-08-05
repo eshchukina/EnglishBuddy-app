@@ -1,48 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import Fireworks from './Fireworks';
 interface RadialProgressProps {
   value: number;
 }
 
 const RadialProgress: React.FC<RadialProgressProps> = ({ value }) => {
-  const [percentage, setPercentage] = useState<number>(0);
 
-  useEffect(() => {
-    const loadPercentage = async () => {
-      try {
-        const storedPercentage = await AsyncStorage.getItem('percentage');
-        if (storedPercentage !== null) {
-          setPercentage(parseFloat(storedPercentage));
-        }
-      } catch (error) {
-        console.error('Error loading percentage from AsyncStorage:', error);
-      }
-    };
 
-    loadPercentage();
-  }, []);
-
-  useEffect(() => {
-    const savePercentage = async () => {
-      try {
-        await AsyncStorage.setItem('percentage', percentage.toString());
-        console.log('Data saved to AsyncStorage:', percentage);
-      } catch (error) {
-        console.error('Error saving percentage to AsyncStorage:', error);
-      }
-    };
-
-    savePercentage();
-  }, [percentage]);
-
-  useEffect(() => {
-    setPercentage(value);
-  }, [value]);
-
-  const formattedPercentage = percentage ? percentage.toFixed(1) : '0.0';
+  const formattedPercentage = value ? value.toFixed(1) : '0.0';
 
   const fgColor = '#d86072';
   const zoomOut = {
@@ -65,7 +32,8 @@ const RadialProgress: React.FC<RadialProgressProps> = ({ value }) => {
 
   return (
     <Animatable.View animation={zoomOut} style={styles.container}>
-      {percentage >= 100 ? (
+      {value >= 100.0 ? (
+        <>
         <Image
           source={require('../../assets/trophy.png')}
           style={{
@@ -74,12 +42,14 @@ const RadialProgress: React.FC<RadialProgressProps> = ({ value }) => {
             alignItems: 'center',
           }}
         />
+      
+        </>
       ) : (
         <View style={styles.progressBar}>
           <View
             style={[
               styles.progressFill,
-              { width: `${isNaN(percentage) ? 0 : percentage}%`, backgroundColor: fgColor },
+              { width: `${isNaN(value) ? 0 : value}%`, backgroundColor: fgColor },
             ]}
           />
         </View>
@@ -109,6 +79,9 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 18,
     color: '#262628',
+    textAlign: 'center',
+
+    fontFamily: 'days2',
   },
 });
 

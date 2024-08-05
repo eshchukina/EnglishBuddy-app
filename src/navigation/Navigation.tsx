@@ -12,7 +12,7 @@ const Navigation = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Download"
+        initialRouteName="Welcome"
         screenOptions={{
           headerShown: false,
           ...TransitionPresets.SlideFromRightIOS,

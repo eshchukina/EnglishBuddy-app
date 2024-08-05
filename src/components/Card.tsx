@@ -26,7 +26,6 @@ const Card: React.FC<CardProps> = ({ word, translation, count }) => {
   const backOpacity = useRef<Animated.Value>(new Animated.Value(0)).current;
 
   const speak = () => {
-    console.log('Speak function called');
     const thingToSay = word;
     Tts.speak(thingToSay);
   };
@@ -38,12 +37,12 @@ const Card: React.FC<CardProps> = ({ word, translation, count }) => {
       Animated.timing(frontOpacity, {
         toValue: newIsFlipped ? 0 : 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
       Animated.timing(backOpacity, {
         toValue: newIsFlipped ? 0 : 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
     ];
 
@@ -152,7 +151,7 @@ const styles = StyleSheet.create({
     color: '#262628',
     fontFamily: 'days2',
     textAlign: 'center',
-    fontSize: 35,
+    fontSize: 34,
   },
   cardContainer: {
     textAlign: 'center',
