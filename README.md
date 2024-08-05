@@ -14,15 +14,20 @@ Embark on a language-learning journey with our app designed to teach you the 100
 ![screenshot 9](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/8.png)
 ![screenshot 10](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/9.png)
 ![screenshot 11](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/10.png)
+
 Progress 1-33%:
 ![screenshot 12](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/11.png)
+
 Progress 33-66%:
 ![screenshot 13](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/12.png)
+
 Progress 66-99%:
 ![screenshot 14](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/13.png)
+
 Progress 100%:
 ![screenshot 15](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/14.png)
 ![screenshot 16](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/15.png)
 ![screenshot 17](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/16.png)
+
 Push notification:
 ![screenshot 18](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/17.png)
