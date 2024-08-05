@@ -1,79 +1,23 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+Buddy-English_Flashcards react native
 
-# Getting Started
+Embark on a language-learning journey with our app designed to teach you the 1000 most commonly used English words through an innovative flashcard system. Immerse yourself in an interactive experience where you not only learn the words but also their translations. The learning process involves a dynamic swipe mechanism – swipe right if you've mastered the word, and left if you're still working on it. Your ultimate goal is to achieve a perfect 100% mastery of the vocabulary. Track your progress and strive to elevate your rating to the highest possible mark. The app, featuring flashcards with English words and their Russian translations, provides a user-friendly interface, making the learning process engaging and effective.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
 
-## Step 1: Start the Metro Server
-
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
-
-To start Metro, run the following command from the _root_ of your React Native project:
-
-```bash
-# using npm
-npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Start your Application
-
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
-
-### For Android
-
-```bash
-# using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### For iOS
-
-```bash
-# using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
-
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+![screenshot 1](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/1.png)
+![screenshot 2](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/2.png)
+![screenshot 3](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/3.png)
+![screenshot 4](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/33.png)
+![screenshot 5](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/4.png)
+![screenshot 6](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/5.png)
+![screenshot 7](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/6.png)
+![screenshot 8](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/7.png)
+![screenshot 9](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/8.png)
+![screenshot 10](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/9.png)
+![screenshot 11](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/10.png)
+![screenshot 12](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/11.png)
+![screenshot 13](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/12.png)
+![screenshot 14](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/13.png)
+![screenshot 15](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/14.png)
+![screenshot 16](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/15.png)
+![screenshot 17](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/16.png)
+![screenshot 18](https://github.com/eshchukina/EnglishBuddy-app/blob/main/assets/screenshots/17.png)
