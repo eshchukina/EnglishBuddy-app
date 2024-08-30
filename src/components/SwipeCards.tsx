@@ -24,7 +24,6 @@ interface Word {
 }
 
 
-
 interface CardData {
   id: number;
   word: string;

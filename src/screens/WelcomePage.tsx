@@ -87,16 +87,16 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ navigation }) => {
 
 
   if (!isFirstLaunch) {
-    return null; // Не показывать WelcomePage, если это не первый запуск
+    return null;
   }
 
   return (
     <Animatable.View 
-    animation={zoomOut}
+
     style={styles.container}>
       <View style={styles.rotatingImageContainer}>
         <Animatable.Image
-          animation={zoomOut}
+  
           source={require('../../assets/belogo.jpg')}
           style={{
             width: 300,
